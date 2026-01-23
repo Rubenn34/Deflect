@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JS RUSH – Corrida</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/default.css">
+</head>
+
+<body class="jogo arcade">
+
+  <div class="game-overlay">
+
+    <div class="hud">
+      <span>POINTS</span>
+      <span id="points">0</span>
+    </div>
+
+    <div id="field">
+      <div id="player"></div>
+    </div>
+
+    <div class="controls">
+      <button id="btn-left" class="control-btn">⬅</button>
+      <button id="btn-right" class="control-btn">➡</button>
+    </div>
+
+    <a href="index.html" class="menu-btn small">⏎ MENU</a>
+  </div>
+
+  <div id="game-over" class="game-over hidden">
+  <h1>GAME OVER</h1>
+  <p>SCORE: <span id="final-score">0</span></p>
+
+  <div class="game-over-buttons">
+    <button id="restart" class="menu-btn">↻ JOGAR NOVAMENTE</button>
+    <a href="index.html" class="menu-btn">⏎ MENU</a>
+  </div>
+</div>
+
+
+  <!-- JS -->
+  <script src="js/rush.js"></script>
+</body>
+</html>
