@@ -2,72 +2,163 @@ const field = document.getElementById("field");
 const player = document.getElementById("player");
 const pointsDisplay = document.getElementById("points");
 
+const btnLeft = document.getElementById("btn-left");
+const btnRight = document.getElementById("btn-right");
+const btnEnd = document.getElementById("btn-end");
+
 let playerX = 95;
 let speed = 3;
 let points = 0;
+
+let gameRunning = false;
 let gameOver = false;
+let enemyLoop = null;
 
 // posição inicial
 player.style.left = playerX + "px";
 
-// CONTROLES
-document.addEventListener("keydown", (e) => {
-  if (gameOver) return;
+// movimento
+function movePlayer(newX) {
+  const fieldWidth = field.clientWidth;
+  const playerWidth = player.offsetWidth;
 
-  if (e.key === "ArrowLeft" && playerX > 10) {
-    playerX -= 40;
-  }
+  const minX = 0;
+  const maxX = fieldWidth - playerWidth;
 
-  if (e.key === "ArrowRight" && playerX < 170) {
-    playerX += 40;
-  }
+  playerX = Math.max(minX, Math.min(newX, maxX));
 
   player.style.left = playerX + "px";
+}
+
+// controles
+document.addEventListener("keydown", (e) => {
+  if (!gameRunning || gameOver) return;
+
+  if (e.key === "ArrowLeft") {
+    movePlayer(playerX - 40);
+    player.classList.add("turn-left");
+    player.classList.remove("turn-right");
+  }
+
+  if (e.key === "ArrowRight") {
+    movePlayer(playerX + 40);
+    player.classList.add("turn-right");
+    player.classList.remove("turn-left");
+  }
 });
 
-// CRIA INIMIGO
+document.addEventListener("keyup", () => {
+  player.classList.remove("turn-left", "turn-right");
+});
+
+if (btnLeft && btnRight) {
+  btnLeft.addEventListener("mousedown", () => {
+    if (!gameRunning || gameOver) return;
+    movePlayer(playerX - 40);
+
+    player.classList.remove("turn-right");
+    player.classList.add("turn-left");
+  });
+
+  btnRight.addEventListener("mousedown", () => {
+    if (!gameRunning || gameOver) return;
+    movePlayer(playerX + 40);
+
+    player.classList.remove("turn-left");
+    player.classList.add("turn-right");
+  });
+
+  ["mouseup", "mouseleave"].forEach(evt => {
+    btnLeft.addEventListener(evt, () => {
+      player.classList.remove("turn-left");
+    });
+
+    btnRight.addEventListener(evt, () => {
+      player.classList.remove("turn-right");
+    });
+  });
+}
+
+function startGame() {
+  if (gameRunning) return;
+
+  gameRunning = true;
+  gameOver = false;
+  points = 0;
+  speed = 3;
+  playerX = 95;
+
+  pointsDisplay.textContent = points;
+
+  document.querySelectorAll(".enemy").forEach(e => e.remove());
+
+  enemyLoop = setInterval(createEnemy, 1200);
+}
+
+function endGame() {
+  gameRunning = false;
+  gameOver = true;
+  clearInterval(enemyLoop);
+}
+
+// inimigos
 function createEnemy() {
-  if (gameOver) return;
+  if (!gameRunning || gameOver) return;
 
   const enemy = document.createElement("div");
   enemy.classList.add("enemy");
 
-  const lane = [10, 80, 150];
-  enemy.style.left = lane[Math.floor(Math.random() * lane.length)] + "px";
+  const types = ["basic", "fast", "tank"];
+  const type = types[Math.floor(Math.random() * types.length)];
+  enemy.classList.add(type);
+
+  const lanes = [10, 80, 150];
+  enemy.style.left = lanes[Math.floor(Math.random() * lanes.length)] + "px";
   enemy.style.top = "-60px";
 
   field.appendChild(enemy);
 
   let enemyY = -60;
 
+  // velocidade por tipo
+  let enemySpeed = speed;
+  if (type === "fast") enemySpeed += 2;
+  if (type === "tank") enemySpeed -= 1;
+
   const move = setInterval(() => {
-    if (gameOver) {
+    if (!gameRunning || gameOver) {
       clearInterval(move);
       enemy.remove();
       return;
     }
 
-    enemyY += speed;
+    enemyY += enemySpeed;
     enemy.style.top = enemyY + "px";
 
     // colisão
     if (checkCollision(player, enemy)) {
-      gameOver = true;
       showGameOver();
-
+      clearInterval(move);
+      enemy.remove();
+      return;
     }
 
-    // passou do campo
     if (enemyY > 420) {
       clearInterval(move);
       enemy.remove();
+
       points++;
       pointsDisplay.textContent = points;
+
+      // dificuldade
+      if (points % 5 === 0 && speed < 10) {
+        speed += 0.5;
+      }
     }
   }, 20);
 }
 
-// COLISÃO
+//colisão
 function checkCollision(a, b) {
   const r1 = a.getBoundingClientRect();
   const r2 = b.getBoundingClientRect();
@@ -80,34 +171,25 @@ function checkCollision(a, b) {
   );
 }
 
-// LOOP PRINCIPAL
-setInterval(createEnemy, 1200);
-
 function showGameOver() {
   gameOver = true;
+  gameRunning = false;
+  clearInterval(enemyLoop);
 
   document.getElementById("final-score").textContent = points;
   document.getElementById("game-over").classList.remove("hidden");
 }
 
-// botão reiniciar
 document.getElementById("restart").addEventListener("click", () => {
-  location.reload();
+  document.getElementById("game-over").classList.add("hidden");
+  startGame();
 });
 
-document.getElementById("btn-left").onclick = () => moveLeft();
-document.getElementById("btn-right").onclick = () => moveRight();
-
-function moveLeft() {
-  if (playerLane > 0) {
-    playerLane--;
-    player.style.left = lanes[playerLane] + "px";
-  }
+if (btnEnd) {
+  btnEnd.addEventListener("click", () => {
+    endGame();
+    showGameOver();
+  });
 }
 
-function moveRight() {
-  if (playerLane < 2) {
-    playerLane++;
-    player.style.left = lanes[playerLane] + "px";
-  }
-}
+startGame();
