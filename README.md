@@ -68,4 +68,21 @@ index.html
 
 ## 📸 Imagens do jogo
 
-*(adicione prints do jogo aqui)*
+### 📸 Menu
+
+![Menu](img/menu.png)
+
+### 📸 Gameplay
+
+![Gameplay](img/gameplay.png)
+
+
+
+
+
+
+
+
+
+
+
